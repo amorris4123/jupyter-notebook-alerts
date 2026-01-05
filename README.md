@@ -38,8 +38,8 @@ When an error occurs:
 
 1. Download the files:
    ```bash
-   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/jupyter-notebook-alerts/main/notebook_auto_alert.py
-   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/jupyter-notebook-alerts/main/_show_alert.py
+   curl -O https://raw.githubusercontent.com/amorris4123/jupyter-notebook-alerts/main/notebook_auto_alert.py
+   curl -O https://raw.githubusercontent.com/amorris4123/jupyter-notebook-alerts/main/_show_alert.py
    ```
 
 2. Place them in your project directory (or anywhere in your Python path)
