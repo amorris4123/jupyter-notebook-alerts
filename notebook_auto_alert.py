@@ -24,6 +24,62 @@ import os
 from pathlib import Path
 
 
+def _get_notebook_name():
+    """Get the current notebook name from IPython"""
+    try:
+        from IPython import get_ipython
+        ip = get_ipython()
+
+        if ip is None:
+            return None
+
+        # Try to get notebook name from connection file
+        try:
+            connection_file = ip.config.get('IPKernelApp', {}).get('connection_file', '')
+            if connection_file:
+                # Extract notebook name from connection file path
+                import json
+                with open(connection_file, 'r') as f:
+                    pass  # File exists, use its name as hint
+        except:
+            pass
+
+        # Try to get from session history database path
+        try:
+            history_file = ip.history_manager.hist_file
+            # The history file is in ~/.ipython/profile_default/history.sqlite
+            # Not directly useful for notebook name
+        except:
+            pass
+
+        # Try to get from user namespace if __file__ is set
+        try:
+            user_ns = ip.user_ns
+            if '__vsc_ipynb_file__' in user_ns:
+                # VS Code sets this variable
+                nb_path = user_ns['__vsc_ipynb_file__']
+                return Path(nb_path).stem
+        except:
+            pass
+
+        # Fallback: try to get from parent process name
+        try:
+            import psutil
+            current_process = psutil.Process()
+            parent = current_process.parent()
+            if parent:
+                cmdline = parent.cmdline()
+                for arg in cmdline:
+                    if arg.endswith('.ipynb'):
+                        return Path(arg).stem
+        except:
+            pass
+
+        return None
+    except:
+        return None
+
+
 def _get_alert_script_path():
     """Get the path to the alert display script"""
     # Check same directory as this script
@@ -46,7 +102,7 @@ def _get_alert_script_path():
     return None
 
 
-def _show_alert(success=True, message=""):
+def _show_alert(success=True, message="", notebook_name=None):
     """Launch alert in separate process to avoid blocking kernel"""
 
     alert_script = _get_alert_script_path()
@@ -58,10 +114,14 @@ def _show_alert(success=True, message=""):
 
     alert_type = "success" if success else "error"
 
+    # Get notebook name if not provided
+    if notebook_name is None:
+        notebook_name = _get_notebook_name() or ""
+
     try:
         # Launch in completely separate process (non-blocking)
         subprocess.Popen(
-            [sys.executable, alert_script, alert_type, message],
+            [sys.executable, alert_script, alert_type, message, notebook_name],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             start_new_session=True  # Fully detach from parent
