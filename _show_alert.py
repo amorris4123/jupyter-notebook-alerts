@@ -121,7 +121,7 @@ def show_alert_window(success=True, message="", notebook_name=""):
     except:
         pass
 
-    root.after(12000, root.destroy)
+    # No auto-dismiss - user must click OK to close
     root.mainloop()
 
 
